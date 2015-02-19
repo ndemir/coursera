@@ -1,0 +1,106 @@
+---
+title: "Practical Machine Learning - Course Project"
+author: "Necati Demir"
+date: "02/19/2015"
+output: html_document
+---
+
+###Include Libraries
+
+We will use caret machine learning library. doMC library is used for concurrency.
+
+```{r}
+library(caret)
+library(doMC)
+registerDoMC(cores = 4)
+```
+
+###Reading Data
+
+Data contains character values like NA and DIV/O!. We will read the dataset and make these values as NA.
+
+```{r}
+training<-read.csv("pml-training.csv", na.strings=c("NA","#DIV/0!",""))
+predictDataset<-read.csv("pml-testing.csv", na.strings=c("NA","#DIV/0!",""))
+```
+
+###Cleaning Data
+
+We will remove first five columns. These are
+
+* "" -> used as id
+* "user_name"
+* "raw_timestamp_part_1"
+* "raw_timestamp_part_2"
+* "cvtd_timestamp"
+
+```{r, echo=FALSE}
+#remove first five columns
+training<-training[,-c(1:5)]
+```
+
+The next step is to assign values to NAs. The mean of column values will be assigned to NAs.
+
+```{r}
+#calculate mean for each integer and numerics columns
+#assigns means to NAs
+for (colName in names(training)){
+  
+  if(class(training[[colName]]) %in% c("integer", "numeric")){
+    m<-mean(training[[colName]], na.rm = TRUE)
+    training[[colName]][is.na(training[[colName]])]<-m
+  }
+  
+}
+```
+
+Now, let's remove the columns where variance is near zero.
+
+```{r}
+training<-training[,-nearZeroVar(training)]
+```
+
+###Splitting Dataset
+
+```{r}
+index <- createDataPartition(y=training$classe, p=0.6, list=FALSE)
+trainingData <- training[index, ]
+testingData <- training[-index, ]
+```
+
+###Training
+
+We will do training by using Random Forest algorithm, 3 Cross Validation will be used.
+
+```{r}
+train_control <- trainControl(method="cv", number=3)
+model <- train(classe~., data=trainingData, method="rf", trControl = train_control)
+```
+
+###Prediction 
+
+First we will make predictions on training dataset and then on testing dataset. This will produce error rates.
+
+```{r}
+prediction <- predict(model, trainingData, type="raw")
+c<-confusionMatrix(prediction, trainingData$classe)
+print("In Sample Error Rate")
+print(1-c[["overall"]][["Accuracy"]])
+
+prediction <- predict(model, testingData, type="raw")
+c<-confusionMatrix(prediction, testingData$classe)
+print("Out of Sample Error Rate")
+print(1-c[["overall"]][["Accuracy"]])
+```
+
+###Generate Data for Submitting
+
+```{r}
+#generate data for submitting
+prediction <- predict(model, predictDataset, type="raw")
+
+for (i in seq(20)){
+  fileName<-paste("problem",i,".txt",sep="_")
+  write.table(prediction[i],file=fileName,quote=FALSE,row.names=FALSE,col.names=FALSE)
+}
+```
