@@ -1,0 +1,62 @@
+---
+title: "Regression Models - Course Project"
+author: "Necati Demir"
+date: "02/20/2015"
+output: html_document
+---
+
+###Prepare Data
+
+```{r}
+library(datasets)
+library(ggplot2)
+data(mtcars)
+
+mtcars$am <- factor(mtcars$am, labels=c("Automatic", "Manual"))
+```
+
+###Is an automatic or manual transmission better for MPG?
+Let's make a t test to understand if means of mpg variables for each transmission type are significantly different.
+
+```{r}
+ttest<-t.test(mpg~am, data=mtcars)
+print(ttest)
+```
+
+According to t test, there is a significance difference of means of mpg variables for each tranmission type. Let's validate by plotting.
+
+```{r}
+plt<-ggplot(mtcars, aes(am, mpg, group=am,color=am)) + geom_boxplot()
+print(plt)
+```
+
+###Quantify the MPG difference between automatic and manual transmissions
+
+To understand which variables most effect the lm, we will use step function.
+
+```{r}
+stepmodel<-step(lm(mpg~., data=mtcars), trace=0)
+print(stepmodel)
+```
+
+It seems that wt, qsec and am variables are the variables that effect the lm. We will train run lm again by using variables wt and qsec, controled by am.
+
+```{r}
+model<-lm(mpg~ am:(wt+qsec),data=mtcars)
+print(model)
+```
+
+* Increasing weight for cars which have manual tranmission decreases the mpg more than increasing weight for cars which have automatic tranmission. Let's plot this.
+
+```{r}
+plt<-ggplot(mtcars, aes(wt, mpg, group=am,color=am)) + geom_line()
+print(plt)
+```
+
+
+* Increasing qsec for cars which have manual tranmission increases the mpg more than increasing qsec for cars which have automatic tranmission. Let's plot this.
+
+```{r}
+plt<-ggplot(mtcars, aes(qsec, mpg, group=am,color=am)) + geom_line()
+print(plt)
+```
