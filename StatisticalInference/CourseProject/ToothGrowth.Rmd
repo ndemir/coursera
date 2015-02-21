@@ -1,0 +1,34 @@
+---
+title: "Statistical Inference - Course Project"
+author: "Necati Demir"
+date: "02/21/2015"
+output: html_document
+---
+##Exploratory Data Analyses
+
+```{r}
+data(ToothGrowth)
+pairs(ToothGrowth)
+```
+
+##Relevant Confidence Intervals and Tests
+
+```{r}
+library(ggplot2)
+plt<-ggplot(ToothGrowth, aes(as.factor(supp),len,color=as.factor(supp)))+geom_boxplot()
+print(plt)
+plt<-ggplot(ToothGrowth, aes(as.factor(dose),len,color=as.factor(dose)))+geom_boxplot()+facet_wrap(~supp)
+print(plt)
+
+t.test(len~supp, ToothGrowth[ToothGrowth$dose==.5,])
+t.test(len~supp, ToothGrowth[ToothGrowth$dose==1,])
+t.test(len~supp, ToothGrowth[ToothGrowth$dose==2,])
+```
+
+##Conclusion
+
+* OJ is better with dose .5 and 1.5 mg.
+
+* There is no significant difference between supplements when dose is 2mg.
+
+

@@ -1,0 +1,49 @@
+---
+title: "Statistical Inference - Course Project"
+author: "Necati Demir"
+date: "02/21/2015"
+output: html_document
+---
+
+In this project you will investigate the exponential distribution in R and compare it with the Central Limit Theorem. The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also 1/lambda. Set lambda = 0.2 for all of the simulations. You will investigate the distribution of averages of 40 exponentials. Note that you will need to do a thousand simulations.
+
+##Simulation
+
+```{r}
+lambda<-.2
+nSample=40
+nSimulation=1000
+hist(rexp(1000, lambda))
+data = NULL
+for (i in 1 : nSimulation) data = c(data, mean(rexp(nSample, lambda)))
+hist(data)
+```
+
+##Sample Mean versus Theoretical Mean
+
+```{r}
+sample_mean <- mean(data)
+theory_mean <- 1/lambda
+print(sample_mean)
+print(theory_mean)
+```
+
+##Sample Variance versus Theoretical Variance
+
+```{r}
+sample_var <- var(data)
+theory_sd <- (1/lambda)/sqrt(nSample)
+theory_var<-theory_sd^2
+print(sample_var)
+print(theory_var)
+```
+
+##Distribution
+How one can tell the distribution is approximately normal?
+
+```{r}
+library(ggplot2)
+data<-data.frame(data)
+g<-ggplot(data, aes(x=data))+geom_histogram(aes(y = ..density..))+stat_function(fun=dnorm,args=list( mean=mean(data$data), sd=sd(data$data)),color="blue")
+print(g)
+```
